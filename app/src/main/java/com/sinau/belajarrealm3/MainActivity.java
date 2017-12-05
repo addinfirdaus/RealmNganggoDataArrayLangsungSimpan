@@ -6,7 +6,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -22,6 +22,9 @@ public class MainActivity extends AppCompatActivity {
     MyAdapter adapter;
     RecyclerView rv;
     EditText nameEditTxt;
+    String[] a = {"1","2","3"};
+    private RealmHelper help;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,11 +49,37 @@ public class MainActivity extends AppCompatActivity {
 
         realm=Realm.getInstance(realmConfiguration);
         //RETRIEVE
-        RealmHelper helper=new RealmHelper(realm);
-        spacecrafts=helper.retrieve();
-        //BIND
-        adapter=new MyAdapter(this,spacecrafts);
-        rv.setAdapter(adapter);
+//        RealmHelper helper=new RealmHelper(realm);
+//        spacecrafts=helper.retrieve();
+        Log.w("GETITEMCOUNT", "onCreate: "+spacecrafts );
+        if (realm.isEmpty()){
+            Spacecraft s=new Spacecraft();
+            for (int b=0;b<a.length;b++){
+                s.setName(a[b]);
+
+                //SAVE
+                help=new RealmHelper(realm);
+                help.save(s);
+                //BIND
+                spacecrafts = help.retrieve();
+                adapter = new MyAdapter(this, spacecrafts);
+                rv.setAdapter(adapter);
+
+            }
+
+        }else{
+
+//        if (adapter.getItemCount()!=0){
+            a=null;
+            RealmHelper helpo=new RealmHelper(realm);
+            spacecrafts = helpo.retrieve();
+            adapter = new MyAdapter(this, spacecrafts);
+            rv.setAdapter(adapter);
+        }
+
+        Log.w("a", "a: "+a );
+
+
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -70,14 +99,20 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 //GET DATA
+
                 Spacecraft s=new Spacecraft();
-                s.setName(nameEditTxt.getText().toString());
-                //SAVE
-                RealmHelper helper=new RealmHelper(realm);
-                helper.save(s);
-                nameEditTxt.setText("");
+                for (int b=0;b<a.length;b++){
+                    s.setName(a[b]);
+                    //SAVE
+                    RealmHelper helper=new RealmHelper(realm);
+                    helper.save(s);
+                    nameEditTxt.setText("");
+                    spacecrafts=helper.retrieve();
+
+                }
+
+
                 //REFRESH
-                spacecrafts=helper.retrieve();
                 adapter=new MyAdapter(MainActivity.this,spacecrafts);
                 rv.setAdapter(adapter);
             }
